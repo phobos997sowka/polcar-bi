@@ -323,3 +323,258 @@ function resetFilters() {
     drawStatusChart();
 
 }
+function drawSupplierChart() {
+
+    const map = {};
+
+    filteredDeliveries.forEach(item => {
+
+        const name = item.dostawca || "Brak";
+
+        if (!map[name]) {
+
+            map[name] = 0;
+
+        }
+
+        map[name] += item.sztuk;
+
+    });
+
+    const sorted = Object.entries(map)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10);
+
+    const labels = sorted.map(x => x[0]);
+
+    const values = sorted.map(x => x[1]);
+
+    if (supplierChart) {
+
+        supplierChart.destroy();
+
+    }
+
+    supplierChart = new Chart(
+
+        document.getElementById("supplierChart"),
+
+        {
+
+            type: "bar",
+
+            data: {
+
+                labels: labels,
+
+                datasets: [
+
+                    {
+
+                        label: "Sztuk",
+
+                        data: values,
+
+                        borderWidth: 1
+
+                    }
+
+                ]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                plugins: {
+
+                    legend: {
+
+                        labels: {
+
+                            color: "white"
+
+                        }
+
+                    }
+
+                },
+
+                scales: {
+
+                    x: {
+
+                        ticks: {
+
+                            color: "white"
+
+                        }
+
+                    },
+
+                    y: {
+
+                        ticks: {
+
+                            color: "white"
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }
+
+    );
+
+}
+
+function drawStatusChart() {
+
+    const map = {};
+
+    filteredDeliveries.forEach(item => {
+
+        const status = item.stan || "Brak";
+
+        if (!map[status]) {
+
+            map[status] = 0;
+
+        }
+
+        map[status]++;
+
+    });
+
+    if (statusChart) {
+
+        statusChart.destroy();
+
+    }
+
+    statusChart = new Chart(
+
+        document.getElementById("statusChart"),
+
+        {
+
+            type: "doughnut",
+
+            data: {
+
+                labels: Object.keys(map),
+
+                datasets: [
+
+                    {
+
+                        data: Object.values(map)
+
+                    }
+
+                ]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                plugins: {
+
+                    legend: {
+
+                        labels: {
+
+                            color: "white"
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }
+
+    );
+
+}
+
+function exportCSV() {
+
+    let csv =
+
+        "Numer;Dostawca;Transport;Pozycje;Sztuk;Priorytet;Stan;Typ;Uwagi\n";
+
+    filteredDeliveries.forEach(item => {
+
+        csv +=
+
+            item.numer + ";" +
+
+            item.dostawca + ";" +
+
+            item.transport + ";" +
+
+            item.pozycje + ";" +
+
+            item.sztuk + ";" +
+
+            item.priorytet + ";" +
+
+            item.stan + ";" +
+
+            item.typ + ";" +
+
+            item.uwagi +
+
+            "\n";
+
+    });
+
+    const blob = new Blob(
+
+        [csv],
+
+        {
+
+            type: "text/csv;charset=utf-8;"
+
+        }
+
+    );
+
+    const link = document.createElement("a");
+
+    link.href = URL.createObjectURL(blob);
+
+    link.download = "polcar_dostawy.csv";
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    document.body.removeChild(link);
+
+}
+
+window.addEventListener(
+
+    "load",
+
+    () => {
+
+        filteredDeliveries = [];
+
+        renderTable();
+
+    }
+
+);
