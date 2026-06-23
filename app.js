@@ -144,3 +144,182 @@ drawSupplierChart();
 drawStatusChart();
 
 }
+function updateKPIs() {
+
+    deliveryCount.innerText = deliveries.length;
+
+    let totalPositions = 0;
+    let totalPieces = 0;
+    let highPriority = 0;
+
+    deliveries.forEach(item => {
+
+        totalPositions += item.pozycje;
+
+        totalPieces += item.sztuk;
+
+        if (item.priorytet >= 30) {
+
+            highPriority++;
+
+        }
+
+    });
+
+    positionCount.innerText = totalPositions.toLocaleString("pl-PL");
+
+    pieceCount.innerText = totalPieces.toLocaleString("pl-PL");
+
+    priorityCount.innerText = highPriority;
+
+}
+
+function filterTable() {
+
+    const text = searchInput.value.toLowerCase();
+
+    filteredDeliveries = deliveries.filter(item =>
+
+        item.numer.toLowerCase().includes(text) ||
+
+        item.dostawca.toLowerCase().includes(text) ||
+
+        item.transport.toLowerCase().includes(text) ||
+
+        item.uwagi.toLowerCase().includes(text) ||
+
+        item.stan.toLowerCase().includes(text)
+
+    );
+
+    currentPage = 1;
+
+    renderTable();
+
+    drawSupplierChart();
+
+    drawStatusChart();
+
+}
+
+function renderTable() {
+
+    tbody.innerHTML = "";
+
+    const start = (currentPage - 1) * rowsPerPage;
+
+    const end = start + rowsPerPage;
+
+    const page = filteredDeliveries.slice(start, end);
+
+    page.forEach(item => {
+
+        const tr = document.createElement("tr");
+
+        let priorityClass = "priorityLow";
+
+        if (item.priorytet >= 30) {
+
+            priorityClass = "priorityHigh";
+
+        }
+        else if (item.priorytet >= 20) {
+
+            priorityClass = "priorityMedium";
+
+        }
+
+        tr.innerHTML = `
+
+<td>${item.numer}</td>
+
+<td>${item.dostawca}</td>
+
+<td>${item.transport}</td>
+
+<td>${item.pozycje}</td>
+
+<td>${item.sztuk.toLocaleString("pl-PL")}</td>
+
+<td class="${priorityClass}">${item.priorytet}</td>
+
+<td>${item.stan}</td>
+
+<td>${item.typ}</td>
+
+<td>${item.uwagi}</td>
+
+`;
+
+        tbody.appendChild(tr);
+
+    });
+
+    updatePagination();
+
+}
+
+function updatePagination() {
+
+    const maxPages = Math.max(
+        1,
+        Math.ceil(filteredDeliveries.length / rowsPerPage)
+    );
+
+    pageInfo.innerText = currentPage + " / " + maxPages;
+
+    prevPage.disabled = currentPage === 1;
+
+    nextPage.disabled = currentPage === maxPages;
+
+}
+
+function sortByPriority() {
+
+    filteredDeliveries.sort((a, b) => b.priorytet - a.priorytet);
+
+    renderTable();
+
+}
+
+function sortByPieces() {
+
+    filteredDeliveries.sort((a, b) => b.sztuk - a.sztuk);
+
+    renderTable();
+
+}
+
+function sortByPositions() {
+
+    filteredDeliveries.sort((a, b) => b.pozycje - a.pozycje);
+
+    renderTable();
+
+}
+
+function showOnlyHighPriority() {
+
+    filteredDeliveries = deliveries.filter(item => item.priorytet >= 30);
+
+    currentPage = 1;
+
+    renderTable();
+
+}
+
+function resetFilters() {
+
+    filteredDeliveries = [...deliveries];
+
+    searchInput.value = "";
+
+    currentPage = 1;
+
+    renderTable();
+
+    drawSupplierChart();
+
+    drawStatusChart();
+
+}
